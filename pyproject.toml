@@ -20,6 +20,8 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest"
+    "pytest",
+    "rpy2",
+    "anndata2ri"
 ]
 
