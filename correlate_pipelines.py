@@ -1,5 +1,5 @@
 """
-Correlation pipeline: Force R neighborhoods into milorpy (now using edgepython)
+Correlation pipeline: Force R neighborhoods into milopy (now using edgepython)
 and compare all 5 outputs.
 """
 import scanpy as sc
@@ -14,7 +14,7 @@ n_cells = 3000
 n_genes = 200
 n_samples = 6
 
-print("=== Correlation Pipeline: milorpy (edgepython) vs miloR (R) ===\n")
+print("=== Correlation Pipeline: milopy (edgepython) vs miloR (R) ===\n")
 
 counts = np.random.poisson(lam=1.5, size=(n_cells, n_genes))
 X = csr_matrix(counts)
@@ -82,9 +82,9 @@ with localconverter(default_converter + numpy2ri.converter):
 print(f"  R: {r_nhood_mat.shape[1]} neighborhoods")
 print(f"  R test columns: {list(r_test_res.columns)}")
 
-# ---- Force R neighborhoods into milorpy ----
-print("\nForcing R neighborhoods into milorpy pipeline...")
-import milorpy
+# ---- Force R neighborhoods into milopy ----
+print("\nForcing R neighborhoods into milopy pipeline...")
+import milopy
 
 adata_forced = adata.copy()
 adata_forced.obsm['nhoods'] = csc_matrix(r_nhood_mat)
@@ -92,9 +92,9 @@ adata_forced.uns['nhood_indices'] = np.array([
     np.where(r_nhood_mat[:, j] > 0)[0][0] for j in range(r_nhood_mat.shape[1])
 ])
 
-milorpy.count_cells(adata_forced, sample_col='sample')
-milorpy.calc_nhood_distance(adata_forced, d=30)
-milorpy.test_nhoods(adata_forced, design='~ condition', design_df=design_df)
+milopy.count_cells(adata_forced, sample_col='sample')
+milopy.calc_nhood_distance(adata_forced, d=30)
+milopy.test_nhoods(adata_forced, design='~ condition', design_df=design_df)
 
 py_res = adata_forced.uns['nhood_test_results']
 print(f"  Py: {len(py_res)} neighborhoods")

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
-from milorpy.core import build_graph, make_nhoods, count_cells, test_nhoods as milor_test_nhoods
+from milopy.core import build_graph, make_nhoods, count_cells, test_nhoods as milor_test_nhoods
 
 try:
     import rpy2.robjects as ro

@@ -98,14 +98,14 @@ print(f"  R test_res shape: {r_test_res.shape}")
 print(f"  R test_res columns: {list(r_test_res.columns)}")
 print(f"  R test_res head:\n{r_test_res.head()}\n")
 
-# ---- Step 2: Run milorpy on same data ----
-print("Step 2: Running milorpy pipeline...")
-import milorpy
-milorpy.build_graph(adata, k=30, d=30)
-milorpy.make_nhoods(adata, prop=0.1, k=30, d=30, random_state=42)
-milorpy.count_cells(adata, sample_col='sample')
-milorpy.calc_nhood_distance(adata, d=30)
-milorpy.test_nhoods(adata, design='~ condition', design_df=design_df)
+# ---- Step 2: Run milopy on same data ----
+print("Step 2: Running milopy pipeline...")
+import milopy
+milopy.build_graph(adata, k=30, d=30)
+milopy.make_nhoods(adata, prop=0.1, k=30, d=30, random_state=42)
+milopy.count_cells(adata, sample_col='sample')
+milopy.calc_nhood_distance(adata, d=30)
+milopy.test_nhoods(adata, design='~ condition', design_df=design_df)
 
 py_res = adata.uns['nhood_test_results']
 py_nhood_mat = adata.obsm['nhoods']
@@ -136,7 +136,7 @@ r_nhood_indices = np.array(r_nhood_indices)
 adata_forced.uns['nhood_indices'] = r_nhood_indices
 
 # Rerun count_cells
-milorpy.count_cells(adata_forced, sample_col='sample')
+milopy.count_cells(adata_forced, sample_col='sample')
 py_forced_counts = adata_forced.uns['nhood_counts']
 
 print(f"  Forced Py nhood_counts shape: {py_forced_counts.shape}")
@@ -179,8 +179,8 @@ else:
 
 # ---- Step 4: Run test_nhoods on the forced counts ----
 print("\nStep 4: Running test_nhoods with forced R neighborhoods...")
-milorpy.calc_nhood_distance(adata_forced, d=30)
-milorpy.test_nhoods(adata_forced, design='~ condition', design_df=design_df)
+milopy.calc_nhood_distance(adata_forced, d=30)
+milopy.test_nhoods(adata_forced, design='~ condition', design_df=design_df)
 py_forced_res = adata_forced.uns['nhood_test_results']
 
 print(f"  Py forced test_res shape: {py_forced_res.shape}")

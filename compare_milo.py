@@ -37,18 +37,18 @@ adata.obsm['X_pca'][is_condB, 0] += 2.0
 sc.pp.neighbors(adata, n_neighbors=30)
 sc.tl.umap(adata)
 
-print("Running milorpy pipeline...")
-import milorpy
+print("Running milopy pipeline...")
+import milopy
 t0 = time.time()
-milorpy.build_graph(adata, k=30, d=30)
-milorpy.make_nhoods(adata, prop=0.1, k=30, d=30, random_state=42)
-milorpy.count_cells(adata, sample_col='sample')
-milorpy.calc_nhood_distance(adata, d=30)
+milopy.build_graph(adata, k=30, d=30)
+milopy.make_nhoods(adata, prop=0.1, k=30, d=30, random_state=42)
+milopy.count_cells(adata, sample_col='sample')
+milopy.calc_nhood_distance(adata, d=30)
 design_df = pd.DataFrame({'condition': ['ConditionA', 'ConditionA', 'ConditionA', 'ConditionB', 'ConditionB', 'ConditionB']}, 
                          index=[f"Sample_{i}" for i in range(6)])
-milorpy.test_nhoods(adata, design='~ condition', design_df=design_df)
+milopy.test_nhoods(adata, design='~ condition', design_df=design_df)
 py_time = time.time() - t0
-print(f"milorpy took {py_time:.2f}s")
+print(f"milopy took {py_time:.2f}s")
 
 py_res = adata.uns['nhood_test_results']
 
@@ -98,8 +98,8 @@ print("Plotting comparison...")
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
 # Plot Py Results
-axes[0].hist(py_res['logFC'], bins=30, alpha=0.7, color='blue', label='milorpy')
-axes[0].set_title('milorpy logFC Distribution')
+axes[0].hist(py_res['logFC'], bins=30, alpha=0.7, color='blue', label='milopy')
+axes[0].set_title('milopy logFC Distribution')
 axes[0].set_xlabel('logFC')
 axes[0].set_ylabel('Frequency')
 
