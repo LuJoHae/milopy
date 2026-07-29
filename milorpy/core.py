@@ -132,25 +132,15 @@ def calc_nhood_distance(adata, d=30):
 
 def test_nhoods(adata, design, design_df, model_contrasts=None):
     """
-    Tests for differential abundance using edgeR via rpy2.
+    Tests for differential abundance using edgepython (pure Python edgeR port).
     `design` is a formula string like '~ condition'
     `design_df` is a pandas DataFrame with row names matching sample columns in `nhood_counts`
     """
     if 'nhood_counts' not in adata.uns:
         raise ValueError("Neighborhood counts not found. Run count_cells(adata, sample_col)")
         
-    try:
-        import rpy2.robjects as ro
-        from rpy2.robjects import pandas2ri
-        from rpy2.robjects.packages import importr
-        from rpy2.robjects import default_converter
-        from rpy2.robjects.conversion import localconverter
-    except Exception as e:
-        raise ImportError(f"rpy2 is required for test_nhoods. Failed to import: {e}")
-        
-    edger = importr('edgeR')
-    stats = importr('stats')
-    base = importr('base')
+    import edgepython as ep
+    import patsy
     
     # Counts are nhoods x samples
     counts_df = adata.uns['nhood_counts']
@@ -158,40 +148,43 @@ def test_nhoods(adata, design, design_df, model_contrasts=None):
     # Ensure design_df is aligned with counts_df columns
     design_df = design_df.loc[counts_df.columns]
     
-    # Convert to R objects
-    with localconverter(default_converter + pandas2ri.converter):
-        r_counts = ro.conversion.py2rpy(counts_df)
-        r_design_df = ro.conversion.py2rpy(design_df)
+    # edgepython expects genes x samples (rows=features, cols=samples)
+    # Our counts_df is nhoods x samples, which is already the right orientation
+    counts_matrix = counts_df.values.astype(float)
     
     # Create DGEList
-    dge = edger.DGEList(counts=r_counts)
-    dge = edger.calcNormFactors(dge, method="TMM")
+    y = ep.make_dgelist(counts=counts_matrix)
+    y = ep.calc_norm_factors(y, method="TMM")
     
-    # Create design matrix
-    formula = stats.as_formula(design)
-    design_mat = stats.model_matrix(formula, data=r_design_df)
+    # Create design matrix using patsy
+    design_mat = patsy.dmatrix(design, design_df, return_type='dataframe')
+    design_array = np.asarray(design_mat, dtype=float)
     
     # Estimate dispersion
-    dge = edger.estimateDisp(dge, design_mat)
+    y = ep.estimate_disp(y, design=design_array)
     
     # Fit QL GLM
-    fit = edger.glmQLFit(dge, design_mat, robust=True)
+    fit = ep.glm_ql_fit(y, design=design_array, robust=True)
     
     # Test
     if model_contrasts is not None:
-        # e.g., model_contrasts = "conditionB - conditionA"
-        make_contrasts = importr('limma').makeContrasts
-        contrast_mat = make_contrasts(model_contrasts, levels=design_mat)
-        res = edger.glmQLFTest(fit, contrast=contrast_mat)
+        # Build contrast vector from string like "conditionB - conditionA"
+        # For now, support simple column index contrasts
+        res = ep.glm_ql_ftest(fit, contrast=model_contrasts)
     else:
         # Default to testing the last coefficient
-        res = edger.glmQLFTest(fit, coef=design_mat.ncol)
+        n_coefs = design_array.shape[1]
+        res = ep.glm_ql_ftest(fit, coef=n_coefs - 1)
         
     # Get results table
-    top_tags = edger.topTags(res, n=counts_df.shape[0], sort_by="none")
-    with localconverter(default_converter + pandas2ri.converter):
-        res_df = ro.conversion.rpy2py(top_tags.rx2('table'))
+    top = ep.top_tags(res, n=counts_matrix.shape[0], sort_by="none")
+    res_df = top['table']
+    
+    # Ensure it's a DataFrame with the right index
+    if not isinstance(res_df, pd.DataFrame):
+        res_df = pd.DataFrame(res_df)
     
     res_df.index = counts_df.index
     adata.uns['nhood_test_results'] = res_df
     return adata
+

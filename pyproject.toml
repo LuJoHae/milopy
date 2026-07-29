@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "milorpy"
-version = "0.1.0"
+version = "0.2.0"
 description = "A native Python implementation of miloR for differential abundance testing"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -14,11 +14,12 @@ dependencies = [
     "scipy",
     "scanpy",
     "anndata",
-    "rpy2"
+    "edgepython",
+    "patsy"
 ]
 
 [project.optional-dependencies]
 test = [
-    "pytest",
-    "anndata2ri"
+    "pytest"
 ]
+
