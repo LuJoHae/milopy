@@ -5,6 +5,10 @@ from .core import (
     calc_nhood_distance,
     test_nhoods,
 )
+from .meta import (
+    test_nhoods_meta,
+    test_nhoods_mixed,
+)
 
 __all__ = [
     "build_graph",
@@ -12,4 +16,6 @@ __all__ = [
     "count_cells",
     "calc_nhood_distance",
     "test_nhoods",
+    "test_nhoods_meta",
+    "test_nhoods_mixed",
 ]
